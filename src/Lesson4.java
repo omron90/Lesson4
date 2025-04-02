@@ -5,6 +5,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
+import org.openqa.selenium.ScreenOrientation;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -27,6 +28,7 @@ public class Lesson4 {
         capabilities.setCapability("appPackage","org.wikipedia");
         capabilities.setCapability("appActivity",".main.MainActivity");
         capabilities.setCapability("app","C:/Users/user/Desktop/Lesson4/apks/Wikipedia_org.apk");
+        capabilities.setCapability("orientation", "PORTRAIT");
 
         driver = new AndroidDriver(new URL("http://127.0.0.1:4723/wd/hub"), capabilities);
     }
@@ -37,7 +39,7 @@ public class Lesson4 {
     }
 
     @Test
-    public void checkingForTitlePresence() {
+    public void testBackScreenOrientationIfTestFailed() {
         waitForElementAndClick(
                 By.id("org.wikipedia:id/fragment_onboarding_skip_button"),
                 "Cannot find 'Skip' button",
@@ -50,23 +52,55 @@ public class Lesson4 {
                 5
         );
 
+        String search_line = "Java";
         waitForElementAndSendKeys(
                 By.xpath("//*[contains(@text, 'Search Wikipedia')]"),
-                "Java",
+                search_line,
                 "Cannot find search input",
                 15
         );
 
         waitForElementAndClick(
                 By.xpath("//*[@text='Object-oriented programming language']"),
-                "Cannot find 'Object-oriented programming language' topic searching by 'Java'",
+                "Cannot find 'Object-oriented programming language' topic searching by " + search_line,
                 15
         );
 
-        String search_result_locator = "pcs-edit-section-title-description";
-        assertElementPresent(
-                By.id(search_result_locator),
-                "Title is missing from article"
+        String title_before_rotation = waitForElementAndGetAttribute(
+                By.xpath("//*[@content-desc='Java (programming language)']"),
+                "name",
+                "Cannot find title of article",
+                15
+        );
+
+        driver.rotate(ScreenOrientation.LANDSCAPE);
+
+        String title_after_rotation = waitForElementAndGetAttribute(
+                By.xpath("//*[@content-desc='Java (programming language)']"),
+                "name",
+                "Cannot find title of article",
+                15
+        );
+
+        Assert.assertEquals(
+                "Article title have been changed after screen rotation",
+                title_before_rotation,
+                title_after_rotation
+        );
+
+        driver.rotate(ScreenOrientation.PORTRAIT);
+
+        String title_after_second_rotation = waitForElementAndGetAttribute(
+                By.xpath("//*[@content-desc='Java (programming language)']"),
+                "name",
+                "Cannot find title of article",
+                15
+        );
+
+        Assert.assertEquals(
+                "Article title have been changed after screen rotation",
+                title_before_rotation,
+                title_after_second_rotation
         );
     }
 
@@ -74,10 +108,6 @@ public class Lesson4 {
         WebDriverWait wait = new WebDriverWait(driver, timeoutInSeconds);
         wait.withMessage(error_message + "\n");
         return wait.until(ExpectedConditions.presenceOfElementLocated(by));
-    }
-
-    private WebElement waitForElementPresent(By by, String error_message) {
-        return waitForElementPresent(by, error_message, 5);
     }
 
     private WebElement waitForElementAndClick(By by, String error_message, long timeoutInSeconds) {
@@ -92,8 +122,8 @@ public class Lesson4 {
         return element;
     }
 
-    private void assertElementPresent(By by, String error_message) {
-        boolean isElementPresent = !driver.findElements(by).isEmpty();
-        Assert.assertTrue(error_message, isElementPresent);
+    private String waitForElementAndGetAttribute(By by, String attribute, String error_message, long timeoutInSeconds) {
+        WebElement element = waitForElementPresent(by, error_message, timeoutInSeconds);
+        return element.getAttribute(attribute);
     }
 }
