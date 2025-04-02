@@ -1,7 +1,7 @@
 import io.appium.java_client.AppiumDriver;
-import io.appium.java_client.TouchAction;
 import io.appium.java_client.android.AndroidDriver;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
@@ -37,7 +37,7 @@ public class Lesson4 {
     }
 
     @Test
-    public void saveAndDeleteArticleToMyList() {
+    public void checkingForTitlePresence() {
         waitForElementAndClick(
                 By.id("org.wikipedia:id/fragment_onboarding_skip_button"),
                 "Cannot find 'Skip' button",
@@ -63,133 +63,10 @@ public class Lesson4 {
                 15
         );
 
-        waitForElementPresent(
-                By.xpath("//*[@content-desc='Java (programming language)']"),
-                "Cannot find article title",
-                15
-        );
-
-        waitForElementAndClick(
-                By.xpath("//android.widget.TextView[@content-desc='Save']"),
-                "Cannot find button 'Save'",
-                5
-        );
-
-        waitForElementAndClick(
-                By.xpath("//android.widget.Button[@text='Add to list']"),
-                "Cannot find button 'Add to list'",
-                30
-        );
-
-        String name_of_folder = "Learning programming";
-
-        waitForElementAndSendKeys(
-                By.id("org.wikipedia:id/text_input"),
-                name_of_folder,
-                "Cannot put text into articles folder input",
-                5
-        );
-
-        waitForElementAndClick(
-                By.xpath("//*[@text='OK']"),
-                "Cannot press OK button",
-                5
-        );
-
-        waitForElementAndClick(
-                By.xpath("//*[contains(@text, 'Search Wikipedia')]"),
-                "Cannot find 'Search Wikipedia' input",
-                5
-        );
-
-        waitForElementAndSendKeys(
-                By.xpath("//*[contains(@text, 'Search Wikipedia')]"),
-                "Python",
-                "Cannot find search input",
-                15
-        );
-
-        waitForElementAndClick(
-                By.xpath("//*[@text='Topics referred to by the same term']"),
-                "Cannot find 'Topics referred to by the same term' topic searching by 'Python'",
-                15
-        );
-
-        waitForElementPresent(
-                By.xpath("//*[@content-desc='Python']"),
-                "Cannot find article title",
-                15
-        );
-
-        waitForElementAndClick(
-                By.xpath("//android.widget.TextView[@content-desc='Save']"),
-                "Cannot find button 'Save'",
-                5
-        );
-
-        waitForElementAndClick(
-                By.xpath("//android.widget.Button[@text='Add to list']"),
-                "Cannot find button 'Add to list'",
-                5
-        );
-
-        waitForElementAndClick(
-                By.id("org.wikipedia:id/item_title_container"),
-                "Cannot find button 'Navigate up'",
-                0
-        );
-
-        waitForElementAndClick(
-                By.id("org.wikipedia:id/page_toolbar_button_show_overflow_menu"),
-                "Cannot find button to open article options",
-                0
-        );
-
-        waitForElementAndClick(
-                By.id("org.wikipedia:id/page_explore"),
-                "Cannot find option to open 'Explore'",
-                5
-        );
-
-        waitForElementAndClick(
-                By.id("org.wikipedia:id/nav_tab_reading_lists"),
-                "Cannot find navigation button to 'Saved'",
-                5
-        );
-
-        waitForElementAndClick(
-                By.id("org.wikipedia:id/negativeButton"),
-                "Cannot find button 'Not now'",
-                5
-        );
-
-        waitForElementAndClick(
-                By.xpath("//*[@text='" + name_of_folder + "']"),
-                "Cannot find created folder",
-                5
-        );
-
-        swipeElementToLeft(
-                By.xpath("//*[@text='Java (programming language)']"),
-                "Cannot find saved article"
-        );
-
-        waitForElementNotPresent(
-                By.xpath("//*[@text='Java (programming language)']"),
-                "Cannot delete saved article",
-                5
-        );
-
-        waitForElementAndClick(
-                By.xpath("//*[@text='Python']"),
-                "Cannot find saved article",
-                15
-        );
-
-        waitForElementPresent(
-                By.xpath("//*[@content-desc='Python']"),
-                "Cannot find article title",
-                15
+        String search_result_locator = "pcs-edit-section-title-description";
+        assertElementPresent(
+                By.id(search_result_locator),
+                "Title is missing from article"
         );
     }
 
@@ -215,31 +92,8 @@ public class Lesson4 {
         return element;
     }
 
-    private boolean waitForElementNotPresent(By by, String error_message, long timeoutInSeconds) {
-        WebDriverWait wait = new WebDriverWait(driver, timeoutInSeconds);
-        wait.withMessage(error_message + "\n");
-        return wait.until(ExpectedConditions.invisibilityOfElementLocated(by));
-    }
-
-    protected void swipeElementToLeft(By by, String error_message) {
-        WebElement element = waitForElementPresent(
-                by,
-                error_message,
-                10
-        );
-
-        int left_x = element.getLocation().getX();
-        int right_x = left_x + element.getSize().getWidth();
-        int upper_y = element.getLocation().getY();
-        int lower_y = upper_y + element.getSize().getHeight();
-        int middle_y = (upper_y + lower_y) / 2;
-
-        TouchAction action = new TouchAction(driver);
-        action
-                .press(right_x, middle_y)
-                .waitAction(300)
-                .moveTo(left_x, middle_y)
-                .release()
-                .perform();
+    private void assertElementPresent(By by, String error_message) {
+        boolean isElementPresent = !driver.findElements(by).isEmpty();
+        Assert.assertTrue(error_message, isElementPresent);
     }
 }
